@@ -1,8 +1,12 @@
 from flask import Flask, render_template,request,redirect
 from flask_sqlalchemy import SQLAlchemy
 
+import os
+
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///employee.db"
+
+# Use environment variable for database URL in production, fallback to SQLite for development
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get('DATABASE_URL', 'sqlite:///employee.db')
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -50,7 +54,10 @@ def update(sno):
     return render_template('update.html', employee=employee)
 
 
+# Initialize database tables
+with app.app_context():
+    db.create_all()
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=False, host='0.0.0.0', port=port)
